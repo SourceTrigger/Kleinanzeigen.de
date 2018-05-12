@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += network
-
-QT       -= gui
+QT       += network core gui
+TEMPLATE = lib
+CONFIG += plugin
 
 TARGET = KleinanzeigenDe
 TEMPLATE = lib
@@ -29,9 +29,12 @@ SOURCES += \
 
 HEADERS += \
         kleinanzeigende.h \
-        kleinanzeigende_global.h 
+    searchagentinterface.h
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+DISTFILES += \
+    KleinanzeigenDe.json
