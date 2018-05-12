@@ -10,8 +10,11 @@ class KleinanzeigenDe : public QObject, public SearchAgentInterface
     Q_OBJECT
         Q_INTERFACES(SearchAgentInterface)
     Q_PLUGIN_METADATA(IID "MG.AnzeigenChef.SearchAgentInterface" FILE "KleinanzeigenDe.json")
+private:
+    QString lastError;
+
 public:
-    KleinanzeigenDe();
+    KleinanzeigenDe(QObject *parent = 0);
     QList<SearchResult> Search(const QUrl& url, int readpages) override;
     QString GetPlatformName() override;
     QString GetPlatformHash() override;
