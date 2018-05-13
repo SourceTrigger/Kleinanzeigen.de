@@ -3,6 +3,7 @@
 
 #include "searchagentinterface.h"
 #include <QGenericPlugin>
+#include <QColor>
 #include <QNetworkAccessManager>
 
 class KleinanzeigenDe : public QObject, public SearchAgentInterface
@@ -20,6 +21,7 @@ public:
     KleinanzeigenDe(QObject *parent = 0);
     QList<SearchResult> Search(const QUrl& url, int readpages) override;
     QString GetPlatformName() override;
+    QColor GetPlatformColor() override;
     QString GetPlatformHash() override;
     QString GetLastError() override;
     QString GetCustomerHelpMessage() override;

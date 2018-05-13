@@ -89,6 +89,11 @@ QString KleinanzeigenDe::GetPlatformHash()
     return "Kleinanzeigen.de#1#1";
 }
 
+QColor KleinanzeigenDe::GetPlatformColor()
+{
+    return QColor::fromRgb(255,204,0);
+}
+
 QString KleinanzeigenDe::GetLastError()
 {
     return lastError;
