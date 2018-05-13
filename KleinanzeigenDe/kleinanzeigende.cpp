@@ -23,6 +23,24 @@ QList<SearchResult> KleinanzeigenDe::Search(const QUrl &url, int readpages)
         QUrlQuery noneQuery;
         QString htmlSource = GetHtmlSourceCode(nextUrl.toString(), noneQuery);
 
+        if (htmlSource.contains("icon-angle-right"))
+        {
+            QString doNextTest = htmlSource.mid(htmlSource.indexOf("icon-angle-right")-200,200);
+            int n1 = doNextTest.lastIndexOf("href=\"");
+            if (n1 > 0)
+            {
+                n1 = n1 + 6;
+                int n2 = doNextTest.indexOf("\"",n1);
+                QString nextSite = doNextTest.mid(n1, n2-n1);
+                if (nextSite.contains("p="))
+                {
+                    nextSite = "https://www.kleinanzeigen.de" + nextSite;
+                    doNext = true;
+                    nextUrl = QUrl(nextSite);
+                }
+            }
+        }
+
         while(htmlSource.contains("srl-item-cont"))
         {
             int p1 = htmlSource.indexOf("srl-item-cont");
@@ -50,7 +68,6 @@ QList<SearchResult> KleinanzeigenDe::Search(const QUrl &url, int readpages)
             if (ir.count()>0)
                 sr.AdId = ir.last();
             sr.AdId = GetPartOfString(sr.AdId, "", ".");
-            qInfo() << sr.AdId << sr.AdTitle;
 
             sr.AdImageUrl = GetPartOfString(part,"itemprop=\"image\"",">");
             sr.AdImageUrl = GetPartOfString(sr.AdImageUrl, "content=\"","\"");
