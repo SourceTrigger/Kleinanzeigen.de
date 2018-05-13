@@ -14,6 +14,7 @@ QList<SearchResult> KleinanzeigenDe::Search(const QUrl &url, int readpages)
     bool doNext = true;
     int currentpage = 1;
     QUrl nextUrl = url;
+    QList<SearchResult> results;
 
     while(doNext)
     {
@@ -22,24 +23,60 @@ QList<SearchResult> KleinanzeigenDe::Search(const QUrl &url, int readpages)
         QUrlQuery noneQuery;
         QString htmlSource = GetHtmlSourceCode(nextUrl.toString(), noneQuery);
 
+        while(htmlSource.contains("srl-item-cont"))
+        {
+            int p1 = htmlSource.indexOf("srl-item-cont");
+            int p2 = htmlSource.indexOf("itemprop=\"price\"", p1);
+            if (p2 > 0)
+                p2 = htmlSource.indexOf(">",p2)+1;
 
+            QString part = htmlSource.mid(p1, p2-p1);
+
+            SearchResult sr;
+
+            sr.AdTitle = GetPartOfString(part,"itemprop=\"name\"",">");
+            sr.AdTitle = GetPartOfString(sr.AdTitle, "content=\"","\"");
+
+            sr.AdDescription = GetPartOfString(part,"itemprop=\"description\"",">")+">";
+            sr.AdDescription = GetPartOfString(sr.AdDescription, "content=\"","\">");
+
+            sr.AdSeoUrl = GetPartOfString(part,"itemprop=\"url\"",">");
+            sr.AdSeoUrl = GetPartOfString(sr.AdSeoUrl, "content=\"","\"");
+
+            // ?? :)
+            sr.AdDistance = GetPartOfString(part,">D-","<");
+
+            QStringList ir = sr.AdSeoUrl.split("-");
+            if (ir.count()>0)
+                sr.AdId = ir.last();
+            sr.AdId = GetPartOfString(sr.AdId, "", ".");
+            qInfo() << sr.AdId << sr.AdTitle;
+
+            sr.AdImageUrl = GetPartOfString(part,"itemprop=\"image\"",">");
+            sr.AdImageUrl = GetPartOfString(sr.AdImageUrl, "content=\"","\"");
+            if (!sr.AdImageUrl.toLower().contains("https"))
+                sr.AdImageUrl = "https:" + sr.AdImageUrl;
+
+            QString price = GetPartOfString(part,"itemprop=\"price\"",">");
+            price = GetPartOfString(price, "content=\"","\"");
+            if (price.contains(","))
+                price = price.left(price.indexOf(","));
+            sr.AdPrice = price.toInt();
+
+            sr.AdStart = QDateTime::currentDateTime().addDays(-1);
+            sr.AdEnd = QDateTime::currentDateTime().addDays(30);
+
+            results.append(sr);
+
+            htmlSource.remove(0,p2);
+        }
 
         currentpage++;
         if (currentpage>readpages)
             break;
     }
 
-    SearchResult result;
-    result.AdDescription = "Hallo Welt";
-    result.AdId = "12345677";
-    result.AdTitle = "Hallo Welt";
-    result.AdPrice = 10;
-    result.AdEnd = QDateTime::currentDateTime().addDays(30);
-    result.AdStart = QDateTime::currentDateTime().addDays(-30);
-    result.AdDistance = "50km";
-    QList<SearchResult> test;
-    test.append(result);
-    return test;
+    return results;
 }
 
 QString KleinanzeigenDe::GetPlatformName()
@@ -90,6 +127,7 @@ QString KleinanzeigenDe::GetHtmlSourceCode(const QString &url, const QUrlQuery &
     QNetworkRequest request(uri);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
+    request.setRawHeader( "Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7" );
 
     QObject::connect(&manager, SIGNAL(finished(QNetworkReply*)), &eventLoop, SLOT(quit()));
     QNetworkReply *reply;
@@ -99,11 +137,15 @@ QString KleinanzeigenDe::GetHtmlSourceCode(const QString &url, const QUrlQuery &
         reply = manager.post(request,post.toString(QUrl::FullyEncoded).toUtf8());
     eventLoop.exec();
 
-    QString responseString = "";
+    QString responseString;
     auto error_type = reply->error();
-    if (error_type == QNetworkReply::NoError) {
-        responseString = reply->readAll();
-    } else {
+    if (error_type == QNetworkReply::NoError)
+    {
+        QByteArray p = reply->readAll();
+        responseString = QString::fromLatin1(p, p.size());
+    }
+    else
+    {
         lastError = reply->errorString();
     }
 
