@@ -1,0 +1,21 @@
+language: c++
+compiler: gcc
+sudo: require
+dist: trusty
+
+before_install:
+    - sudo add-apt-repository ppa:beineri/opt-qt591-trusty -y
+    - sudo apt-get update -qq
+    
+install: 
+    - sudo apt-get -y install libusb-1.0-0-dev pkg-config qt59base qt59declarative qt59charts-no-lgpl qt59multimedia libpulse0 libfaad-dev libfftw3-dev librtlsdr-dev libusb-1.0-0-dev mesa-common-dev libglu1-mesa-dev libpulse-dev
+    - source /opt/qt59/bin/qt59-env.sh
+
+script:
+  - qmake -v
+  - qmake KleinanzeigenDe/KleinanzeigenDe.pro
+  - make -j4
+  
+after_success:
+  - pwd
+  - curl --upload-file ./build/release/linux/libKleinanzeigenDe.so https://transfer.sh/libKleinanzeigenDe.so
