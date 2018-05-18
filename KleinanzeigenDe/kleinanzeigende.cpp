@@ -58,6 +58,23 @@ QList<SearchResult> KleinanzeigenDe::Search(const QUrl &url, int readpages)
             sr.AdDescription = GetPartOfString(part,"itemprop=\"description\"",">")+">";
             sr.AdDescription = GetPartOfString(sr.AdDescription, "content=\"","\">");
 
+            if (sr.AdDescription.toLower() == "array")
+            {
+                QString extraPart = part;
+                QStringList extraDesc;
+
+                while(extraPart.contains("\"hidden-sm\""))
+                {
+                    QString extraString = GetPartOfString(extraPart,"\"hidden-sm\"", "<");
+                    extraString = GetPartOfString(extraString, ">","");
+                    extraDesc.append(extraString);
+
+                    extraPart = GetPartOfString(extraPart, "\"hidden-sm\"", "");
+                }
+
+                sr.AdDescription = extraDesc.join(", ");
+            }
+
             sr.AdSeoUrl = GetPartOfString(part,"itemprop=\"url\"",">");
             sr.AdSeoUrl = GetPartOfString(sr.AdSeoUrl, "content=\"","\"");
 
