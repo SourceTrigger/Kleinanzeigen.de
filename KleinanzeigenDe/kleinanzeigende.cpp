@@ -76,8 +76,13 @@ QList<SearchResult> KleinanzeigenDe::Search(const QUrl &url, int readpages)
 
             QString price = GetPartOfString(part,"itemprop=\"price\"",">");
             price = GetPartOfString(price, "content=\"","\"");
+
+            if (price.contains(".") && price.contains(","))
+                price.replace(".","");
+
             if (price.contains(","))
                 price = price.left(price.indexOf(","));
+
             sr.AdPrice = price.toInt();
 
             sr.AdStart = QDateTime::currentDateTime().addDays(-1);
