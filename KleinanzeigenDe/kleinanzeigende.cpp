@@ -194,7 +194,6 @@ QString KleinanzeigenDe::GetHtmlSourceCode(const QString &url, const QUrlQuery &
     }
 
     reply->deleteLater();
-    manager.deleteLater();
 
     return responseString;
 }
